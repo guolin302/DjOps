@@ -27,4 +27,4 @@ python manage.py runserver
 
 * 目前还有好多问题。比如异步执行动作，页面样式等。慢慢来吧~
 
-
+![image](https://user-images.githubusercontent.com/28593701/117539265-79a03180-b03c-11eb-9cd4-7b6d628cc32c.png)
