@@ -11,10 +11,6 @@ from django.contrib.auth.decorators import login_required
 # Create your views here.
 from .Ansible2 import *
 from django.conf import settings
-from rest_framework.views import APIView
-from rest_framework.generics import GenericAPIView
-from rest_framework.mixins import ListModelMixin, CreateModelMixin, UpdateModelMixin, DestroyModelMixin, \
-    RetrieveModelMixin
 from rest_framework.viewsets import ModelViewSet
 from management import models
 from management import appseries
@@ -22,14 +18,10 @@ from rest_framework.response import Response
 from rest_framework import status
 import os
 from django.views.decorators.clickjacking import xframe_options_exempt
-
-auth_md5_keys = {}
-
 ssh_info = settings.SSH_INFO
 ssh_user = ssh_info['SSH_USER']
 ssh_port = ssh_info['SSH_PORT']
 ssh_pass = ssh_info['SSH_PASS']
-
 
 def is_super_user(func):
     '''身份认证装饰器，
@@ -130,10 +122,6 @@ def login(request):
     return render(request, 'login/login.html')
 
 
-def logout(request):
-    auth.logout(request)
-    return redirect('/login/')
-
 
 @login_required
 @is_super_user
@@ -146,8 +134,6 @@ def groupinfo(request):
     for group in groupobj:
         osobj = Hostinfo.objects.filter(app=group)
         if osobj:
-            # if group not in allinfo:
-            #    allinfo[group]
             allinfo[group] = osobj
         else:
             allinfo[group] = ''
@@ -211,7 +197,6 @@ def resinfo(request):
             print(e, '----')
             return HttpResponseRedirect(last_html)
 
-
 @login_required
 @is_super_user
 @xframe_options_exempt
@@ -250,7 +235,6 @@ def hostupdate(request):
                         elif "KB" == danwei:
                             disk_size += size / 1024
                     disk_size = int(disk_size)
-                    # json.dumps(result_raw, indent=4)
                     ip_obj = Hostinfo.objects.get(ip=ip)
                     ip_obj.mac = mac
                     ip_obj.hostname = hostname
@@ -301,14 +285,14 @@ def scan(request):
             hosts_list = [(x, nm[x]['tcp'][22]['state']) for x in nm.all_hosts()]
             iplist = []
             for ip, status in hosts_list:
-                groupobj = AnsGroup.objects.get(group_name=group)
+                groupobj = AppGroup.objects.get(group_name=group)
                 if status == 'open':
-                    if not Osinfo.objects.filter(os_ip=ip):
-                        addos = Osinfo.objects.create(os_ip=ip, os_vlan=vlanobj)
+                    if not Hostinfo.objects.filter(os_ip=ip):
+                        addos = Hostinfo.objects.create(os_ip=ip, os_vlan=vlanobj)
                         addos.os_group.add(groupobj)
                         print("create", ip, groupobj)
                     else:
-                        addos = Osinfo.objects.get(os_ip=ip, os_vlan=vlanobj)
+                        addos = Hostinfo.objects.get(os_ip=ip, os_vlan=vlanobj)
                         addos.os_group.add(groupobj)
                         print("add", ip, groupobj)
 
@@ -325,8 +309,6 @@ def get_sh_file():
     for cur_dir, dirs, files in os.walk(path):
         for f in files:  # 当前目录下的所有文件
             if f.endswith('.sh'):
-                # real_path = os.path.join(cur_dir, f)
-                # os.remove(real_path)
                 file_path = "{}/{}".format(cur_dir, f)
                 fileList.append({'name': f, 'path': file_path})
     return fileList
@@ -382,3 +364,9 @@ def shell(request):
             last_html = request.META.get('HTTP_REFERER', '/')
             return HttpResponseRedirect(last_html)
     return render(request, 'shell.html', {'filelist': fileList, 'iplist': iplist, 'shell_res': shell_res, 'run_type':ctype})
+
+
+
+def logout(request):
+    auth.logout(request)
+    return redirect('/login/')
