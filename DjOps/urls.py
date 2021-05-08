@@ -33,14 +33,9 @@ urlpatterns = [
     path('groupinfo/', mv.groupinfo),
     path('resinfo/', mv.resinfo),
     path('hostupdate/', mv.hostupdate),
-    path('hostdelete/', mv.hostdelete),
     path('groupupdate/', mv.groupupdate),
-    path('groupdelete/', mv.groupdelete),
     path('scan/', mv.scan),
-    path('add/', mv.add_test_host),
-    path('collect/', mv.collect_ip_mac),
-    path('shell/', mv.run_shell),
-    path('script/', mv.run_script),
+    path('shell/', mv.shell),
 
     #path('api/hosts/', mv.HostView.as_view(actions={'get': 'retrieve', 'post': 'create'})),
 
@@ -49,4 +44,3 @@ urlpatterns = [
             mv.HostView.as_view(actions={'get': 'retrieve','put':'update'})),
 
 ]
-handler404 = mv.page_not_found

@@ -70,60 +70,20 @@ class HostView(ModelViewSet):  # 五个接口都有，但是路由有问题,通�
     serializer_class = appseries.HostinfoSerializer
 
 
-def updatehostinfo(ip):
-    ip_obj = Hostinfo.objects.get(ip=ip)
-    ansible2 = MyAnsiable(inventory=ip + ',', remote_user=ssh_user, remote_password={"conn_pass": ssh_pass})
-    ansible2.run(hosts=ip, module='setup')
-
-    return_djc = ansible2.get_result()
-    success_dic = return_djc['success']
-    print("success:{} failed:{} unreachable:{}".format(len(return_djc['success']), len(return_djc['failed']),
-                                                       len(return_djc['unreachable'])))
-    try:
-        facts_dics = success_dic[ip]['ansible_facts']
-        #print(facts_dics)
-        for network_infos in facts_dics:
-            if 'macaddress' in str(facts_dics[network_infos]) and ip in str(facts_dics[network_infos]):
-                mac = facts_dics[network_infos]['macaddress']
-                netdev = network_infos
-        kernel = facts_dics['ansible_kernel']
-        cpu = facts_dics['ansible_processor'][2]
-        vcpu = facts_dics['ansible_processor_vcpus']
-        system = facts_dics['ansible_distribution'] + facts_dics['ansible_distribution_version']
-        sn = facts_dics['ansible_product_serial']
-        memory = facts_dics['ansible_memory_mb']['real']['total']
-        hostname = facts_dics['ansible_fqdn']
-        equipment_model = facts_dics['ansible_system_vendor']
-        devices = facts_dics['ansible_devices']
-        device = {}
-        for i in devices.keys():
-            if  'storage' in facts_dics['ansible_devices'][i]['host']:
-                device[i] = facts_dics['ansible_devices'][i]['size']
-        disk_size = 0
-        for diskname in device:
-            size = float(device[diskname].split()[0])
-            danwei = str(device[diskname].split()[1])
-            if "GB" == danwei:
-                disk_size += size
-            elif "KB" == danwei:
-                disk_size += size / 1024
-        disk_size = int(disk_size)
-        # json.dumps(result_raw, indent=4)
-        ip_obj.mac = mac
-        ip_obj.hostname = hostname
-        ip_obj.cpu = cpu
-        ip_obj.vcpu = vcpu
-        ip_obj.disk = disk_size
-        ip_obj.system = system
-        ip_obj.kernel = kernel
-        ip_obj.sn = sn
-        ip_obj.mem = memory
-        ip_obj.equipment_model = equipment_model
-        ip_obj.save()
-
-        return None
-    except Exception as e:
-        return return_djc
+def RunAnsible(ip, _module='ping', _args=None, _become=None):
+    print(ip, _module, _args,_become)
+    ans = MyAnsiable(inventory=ip, remote_user=ssh_user, become=_become, remote_password={"conn_pass": ssh_pass})
+    if _module != 'setup':
+        ans.run(hosts=ip, module=_module, args=_args)
+    else:
+        ans.run(hosts=ip, module=_module)
+    return_dic = ans.get_result()
+    restr=("success:{} failed:{} unreachable:{}".format(len(return_dic['success']), len(return_dic['failed']),
+                                                       len(return_dic['unreachable'])))
+    success = return_dic['success']
+    unreachable = return_dic['unreachable']
+    failed = return_dic['failed']
+    return success, unreachable, failed,restr
 
 
 @login_required
@@ -252,25 +212,61 @@ def resinfo(request):
             return HttpResponseRedirect(last_html)
 
 
-# @login_required
-# @is_super_user
+@login_required
+@is_super_user
+@xframe_options_exempt
 def hostupdate(request):
     ip = request.GET.get('ip')
     if ip:
-        res = updatehostinfo(ip)
-        if res:
-            #    print(res)
-            return HttpResponse(str(res))
-    last_html = request.META.get('HTTP_REFERER', '/')
-    return HttpResponseRedirect(last_html)
+        success_dic,_a,_b,restr = RunAnsible(ip=ip,_module='setup',_become='yes')
+        if success_dic:
+            iplist = str(ip).split(',')[:-1]
+            try:
+                for ip in iplist:
+                    facts_dics = success_dic[ip]['ansible_facts']
+                    for network_infos in facts_dics:
+                        if 'macaddress' in str(facts_dics[network_infos]) and ip in str(facts_dics[network_infos]):
+                            mac = facts_dics[network_infos]['macaddress']
+                            netdev = network_infos
+                    kernel = facts_dics['ansible_kernel']
+                    cpu = facts_dics['ansible_processor'][2]
+                    vcpu = facts_dics['ansible_processor_vcpus']
+                    system = facts_dics['ansible_distribution'] + facts_dics['ansible_distribution_version']
+                    sn = facts_dics['ansible_product_serial']
+                    memory = facts_dics['ansible_memory_mb']['real']['total']
+                    hostname = facts_dics['ansible_fqdn']
+                    equipment_model = facts_dics['ansible_system_vendor']
+                    devices = facts_dics['ansible_devices']
+                    device = {}
+                    for i in devices.keys():
+                        if 'storage' in facts_dics['ansible_devices'][i]['host']:
+                            device[i] = facts_dics['ansible_devices'][i]['size']
+                    disk_size = 0
+                    for diskname in device:
+                        size = float(device[diskname].split()[0])
+                        danwei = str(device[diskname].split()[1])
+                        if "GB" == danwei:
+                            disk_size += size
+                        elif "KB" == danwei:
+                            disk_size += size / 1024
+                    disk_size = int(disk_size)
+                    # json.dumps(result_raw, indent=4)
+                    ip_obj = Hostinfo.objects.get(ip=ip)
+                    ip_obj.mac = mac
+                    ip_obj.hostname = hostname
+                    ip_obj.cpu = cpu
+                    ip_obj.vcpu = vcpu
+                    ip_obj.disk = disk_size
+                    ip_obj.system = system
+                    ip_obj.kernel = kernel
+                    ip_obj.sn = sn
+                    ip_obj.mem = memory
+                    ip_obj.equipment_model = equipment_model
+                    ip_obj.save()
 
-
-@login_required
-@is_super_user
-def hostdelete(request):
-    ip = request.GET.get('ip')
-    if ip:
-        Hostinfo.objects.filter(ip=ip).delete()
+                return HttpResponse(restr)
+            except Exception as e:
+                return HttpResponse(str(e))
     last_html = request.META.get('HTTP_REFERER', '/')
     return HttpResponseRedirect(last_html)
 
@@ -283,20 +279,7 @@ def groupupdate(request):
         groupobj = AppGroup.objects.get(name=name)
         osobj = Hostinfo.objects.filter(app=groupobj)
         for ip in osobj:
-            updatehostinfo(ip.ip)
-    last_html = request.META.get('HTTP_REFERER', '/')
-    return HttpResponseRedirect(last_html)
-
-
-@login_required
-@is_super_user
-def groupdelete(request):
-    ip = request.GET.get('ip')
-    name = request.GET.get('group')
-    if ip and name:
-        groupobj = AppGroup.objects.get(group_name=name)
-        delos = Hostinfo.objects.get(os_ip=ip)
-        delos.os_group.remove(groupobj)
+            RunAnsible(ip.ip)
     last_html = request.META.get('HTTP_REFERER', '/')
     return HttpResponseRedirect(last_html)
 
@@ -335,121 +318,7 @@ def scan(request):
     groupinfo = AppGroup.objects.all()
     return render(request, 'scan.html', {'vlaninfo': vlaninfo, 'groupinfo': groupinfo, 'thepage': thepage})
 
-
-def page_not_found(request, exception=404):
-    return HttpResponseNotFound('!!!')
-
-
-def add_test_host(request):
-    ip = request.GET.get('ip')
-    # vlanobj = Vlaninfo.objects.get(id=1)
-    # addos = Osinfo.objects.create(os_ip=ip,os_vlan=vlanobj)
-    # addos.os_group.set('')
-    # addos.save
-    Osinfo.objects.get(os_ip=ip).delete()
-    return HttpResponse('ok')
-
-
-def collect_ip_mac(request):
-    if request.method == 'POST':
-        request_body = json.loads(request.body)
-        ip = request_body.get('ip')
-        mac = request_body.get('mac')
-        hostname = request_body.get('hostname')
-        print(request.POST)
-        vlaninfo = Vlaninfo.objects.all()
-        os_vlan_id = False
-        for vlan in vlaninfo:
-            print(ip, vlan.vlan_net, vlan.id)
-            if ip in IPy.IP(vlan.vlan_net):
-                os_vlan_id = vlan
-
-        if not os_vlan_id:
-            return HttpResponse('未找到相关网段信息')
-        try:
-            print(os_vlan_id, '-------------')
-            addos = Osinfo.objects.filter(os_ip=ip)
-            if addos:
-                addos.update(os_ip=ip, os_mac=mac, os_vlan=os_vlan_id, os_hostname=hostname)
-            else:
-                addos = Osinfo.objects.create(os_ip=ip, os_mac=mac, os_vlan=os_vlan_id, os_hostname=hostname)
-                addos.os_group.set('2')
-            return HttpResponse('ok')
-        except Exception as e:
-            print(e)
-            return HttpResponseBadRequest(e)
-    else:
-        return HttpResponseBadRequest("request error")
-
-
-@login_required
-@is_super_user
-@xframe_options_exempt
-def run_shell(request):
-    thepage = {}
-    shell_res = []
-    thepage['h1'] = 'shell'
-    thepage['name'] = '执行命令'
-    if request.method == 'POST':
-        iplist = request.POST.getlist('ip')
-        shell = request.POST.get('shell')
-        is_sudo = request.POST.get('is_sudo')
-        if is_sudo == 'on':
-            become = 'yes'
-        else:
-            become = None
-        if 'vi' in shell or 'vim' in shell:
-            shell_res = "vi 等交互命令不支持"
-        elif iplist and shell:
-            ip = ",".join(iplist)
-            print(ip, shell, is_sudo)
-            ansible2 = MyAnsiable(inventory=ip + ',', remote_user=ssh_user, become=become,
-                                  remote_password={"conn_pass": ssh_pass})
-            ansible2.run(hosts=ip, module='shell', args=shell)
-            print('run')
-            return_djc = ansible2.get_result()
-            success = return_djc['success']
-            unreachable = return_djc['unreachable']
-            failed = return_djc['failed']
-            # print(json.dumps(return_djc))
-            print("success:{} failed:{} unreachable:{}".format(len(return_djc['success']), len(return_djc['failed']),
-                                                               len(return_djc['unreachable'])))
-            # ['success'][ip]['stdout']
-            for i in iplist:
-                resdic = {}
-                resstr = ''
-                resdic['resstr'] = ""
-                cmdstr = "{} $: {}\n".format(i, shell)
-                resdic['cmdstr'] = cmdstr
-                if success.get(i):
-                    resstr += str(success.get(i)['stdout']) + "\n"
-                    resdic['resstr'] += resstr
-                if unreachable.get(i):
-                    resstr += str(unreachable.get(i)['msg']) + "\n"
-                    resdic['resstr'] += resstr
-                if failed.get(i):
-                    resstr += str(failed.get(i)['msg']) + "\n"
-                    resdic['resstr'] += resstr
-                shell_res.append(resdic)
-        else:
-            last_html = request.META.get('HTTP_REFERER', '/')
-            return HttpResponseRedirect(last_html)
-    else:
-        iplist = str(request.GET.get('ip')).split(',')[:-1]
-        if len(iplist) == 0:
-            print(iplist, len(iplist))
-            last_html = request.META.get('HTTP_REFERER', '/')
-            return HttpResponseRedirect(last_html)
-    return render(request, 'shell.html', {'iplist': iplist, 'thepage': thepage, 'shell_res': shell_res})
-
-
-@login_required
-@is_super_user
-@xframe_options_exempt
-def run_script(request):
-    shell_res = []
-    # 所有文件夹，第一个字段是次目录的级别
-    # 所有文件
+def get_sh_file():
     fileList = []
     path = str(settings.BASE_DIR) + "/shell"
     # 先添加目录级别
@@ -460,35 +329,36 @@ def run_script(request):
                 # os.remove(real_path)
                 file_path = "{}/{}".format(cur_dir, f)
                 fileList.append({'name': f, 'path': file_path})
+    return fileList
+@login_required
+@is_super_user
+@xframe_options_exempt
+def shell(request):
+    fileList=get_sh_file()
+    shell_res=[]
     if request.method == 'POST':
+        print('post')
         iplist = request.POST.getlist('ip')
-        script = request.POST.get('script')
+        ctype = request.POST.get('type')
         is_sudo = request.POST.get('open')
+        if ctype == 'script':
+            command = request.POST.get('script')
+        elif ctype == 'shell':
+            command = request.POST.get('shell')
+        else:
+            command = False
         if is_sudo == 'on':
             become = 'yes'
         else:
             become = None
-        print(iplist,script)
-        if iplist and script:
+        if iplist and command:
             ip = ",".join(iplist)
-            print(ip, script, is_sudo)
-            ansible2 = MyAnsiable(inventory=ip + ',', remote_user=ssh_user, become=become,
-                                  remote_password={"conn_pass": ssh_pass})
-            ansible2.run(hosts=ip, module='script', args=script)
-            print('run')
-            return_djc = ansible2.get_result()
-            success = return_djc['success']
-            unreachable = return_djc['unreachable']
-            failed = return_djc['failed']
-            # print(json.dumps(return_djc))
-            print("success:{} failed:{} unreachable:{}".format(len(return_djc['success']), len(return_djc['failed']),
-                                                               len(return_djc['unreachable'])))
-            # ['success'][ip]['stdout']
+            success, unreachable, failed,restr = RunAnsible(ip=ip + ",", _module=ctype, _args=command, _become=become)
             for i in iplist:
                 resdic = {}
                 resstr = ''
                 resdic['resstr'] = ""
-                cmdstr = "{} $: {}\n".format(i, script)
+                cmdstr = "{} $: {}\n".format(i, command)
                 resdic['cmdstr'] = cmdstr
                 if success.get(i):
                     resstr += str(success.get(i)['stdout']) + "\n"
@@ -499,18 +369,16 @@ def run_script(request):
                 if failed.get(i):
                     resstr += str(failed.get(i)['msg']) + "\n"
                     resdic['resstr'] += resstr
-
-                resdic['resstr'] += "\n\n"
                 shell_res.append(resdic)
 
         else:
-
             last_html = request.META.get('HTTP_REFERER', '/')
             return HttpResponseRedirect(last_html)
     else:
         iplist = str(request.GET.get('ip')).split(',')[:-1]
+        ctype = request.GET.get('type')
         if len(iplist) == 0:
             print(iplist, len(iplist))
             last_html = request.META.get('HTTP_REFERER', '/')
             return HttpResponseRedirect(last_html)
-    return render(request, 'script.html', {'filelist': fileList, 'iplist': iplist, 'shell_res': shell_res})
+    return render(request, 'shell.html', {'filelist': fileList, 'iplist': iplist, 'shell_res': shell_res, 'run_type':ctype})

@@ -7,6 +7,7 @@
         <div class="layui-btn-container">
             <button class="layui-btn layui-btn-sm" lay-event="shell">执行命令</button>
             <button class="layui-btn layui-btn-sm" lay-event="script">执行脚本</button>
+            <button class="layui-btn layui-btn-sm" lay-event="update">批量更新</button>
             <button class="layui-btn layui-btn-sm" lay-event="isAll">验证是否全选</button>
         </div>
     </script>
@@ -37,6 +38,11 @@
                     , {
                         field: 'app', title: '应用', width: 100, sort: true, templet: function (res) {
                             return '<em>' + res.app.name + '</em>'
+                        }
+                    }
+                    , {
+                        field: 'vlan', title: '环境', width: 100, sort: true, templet: function (res) {
+                            return '<em>' + res.vlan.vlan_area + '</em>'
                         }
                     }
                     , {
@@ -75,9 +81,8 @@
                         for (var item in data) {
                             iplist += data[item].ip + ",";
                         }
-                        //layer.alert(JSON.stringify(iplist));
                         if (data.length != 0) {
-                            var url = '/shell?ip=' + iplist
+                            var url = '/shell?ip=' + iplist + "&type=shell"
                             layer.open({
                                 type: 2,
                                 title: "执行命令",
@@ -100,7 +105,7 @@
                         }
                         //layer.alert(JSON.stringify(iplist));
                         if (data.length != 0) {
-                            var url = '/script?ip=' + iplist
+                            var url = '/shell?ip=' + iplist + "&type=script"
                             layer.open({
                                 type: 2,
                                 title: "执行脚本",
@@ -138,7 +143,52 @@
                             layer.msg('未选中任何主机');
                         }
                         break;
+                    case 'update':
+                        var iplist = ''
+                        var data = checkStatus.data;
+                        for (var item in data) {
+                            iplist += data[item].ip + ",";
+                        }
+                        //layer.alert(JSON.stringify(iplist));
+                        if (data.length != 0) {
+                            var url = '/hostupdate/?ip=' + iplist
+                            layer.open({
+                                type: 2,
+                                title: "执行脚本",
+                                shadeClose: true,
+                                maxmin: true,
+                                area: ['90%', '90%'],
+                                content: [url, 'on'],
+                                btn: ['关闭'],
 
+                                zIndex: layer.zIndex //重点1
+                                , success: function (layero, index) {
+                                    layer.setTop(layero); //重点2. 保持选中窗口置顶
+                                    //记录索引，以便按 esc 键关闭。事件见代码最末尾处。
+                                    layer.escIndex = layer.escIndex || [];
+                                    layer.escIndex.unshift(index);
+                                    //选中当前层时，将当前层索引放置在首位
+                                    layero.on('mousedown', function () {
+                                        var _index = layer.escIndex.indexOf(index);
+                                        if (_index !== -1) {
+                                            layer.escIndex.splice(_index, 1); //删除原有索引
+                                        }
+                                        layer.escIndex.unshift(index); //将索引插入到数组首位
+                                    });
+                                }
+                                , end: function () {
+                                    //更新索引
+                                    if (typeof layer.escIndex === 'object') {
+                                        layer.escIndex.splice(0, 1);
+                                    }
+                                }
+
+                            })
+
+                        } else {
+                            layer.msg('未选中任何主机');
+                        }
+                        break;
                     case
                     'getCheckLength'
                     :
