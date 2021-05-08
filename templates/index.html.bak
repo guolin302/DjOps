@@ -1,0 +1,14 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN"
+        "http://www.w3.org/TR/html4/loose.dtd">
+<html>
+<head>
+    <title>Title</title>
+</head>
+<body>
+当前登陆的用户：{{ user }}
+<a href="/logout/">退出登陆</a>
+<h1>这仅仅是一个主页模拟！请根据实际情况接入正确的主页！</h1>
+<a href="/res/">查看资源</a>
+<a href="/scan/">扫描资源</a>
+</body>
+</html>

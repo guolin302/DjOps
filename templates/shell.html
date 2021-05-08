@@ -1,0 +1,76 @@
+{% load static %}
+{% csrf_token %}
+<!DOCTYPE html>
+<html>
+<head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8"/>
+    <link rel="stylesheet" href="{% static 'layui/css/layui.css' %}" media="all" type="text/css">
+    <script type="text/javascript" src="{% static 'layui/layui.js' %}"></script>
+</head>
+<body>
+<div class="layui-form-item">
+
+    <form method="post" class="layui-form" action="/shell/">
+        <div class="layui-form-item">
+            <label class="layui-form-label">主机ip：</label>
+            <div class="layui-input-block">
+                {% for ip in iplist %}
+                    <input type="checkbox" checked="true" name="ip" value="{{ ip }}" title="{{ ip }}">
+                {% endfor %}
+            </div>
+        </div>
+        <div class="layui-form-item">
+            <label class="layui-form-label">命令：</label>
+            <div class="layui-input-inline">
+                <input type="text" lay-verify="required" name="shell" placeholder="不支持换行 命令之间用;隔开" class="layui-input">
+            </div>
+        </div>
+        <div class="layui-form-item">
+            <label class="layui-form-label">是否sudo</label>
+            <div class="layui-input-block">
+                <input type="checkbox" checked="" name="open" lay-skin="switch" lay-filter="switchTest" lay-text="是|否">
+
+                <button lay-filter="submit"  lay-submit class="layui-btn" type="submit">开始执行</button>
+            </div>
+        </div>
+    </form>
+</div>
+<div>
+    {% if shell_res|length >= 1 %}
+        {% for res in shell_res %}
+            <div class="layui-collapse">
+                <div class="layui-colla-item">
+                    <h2 class="layui-colla-title">{{ res.cmdstr }}</h2>
+                    <div class="layui-colla-content layui-show">
+                        <pre style="color: midnightblue;font-size: 16px;">{{ res.cmdstr }}</pre>
+                        <pre style="color: midnightblue;font-size: 16px;">{{ res.resstr }}</pre>
+                    </div>
+                </div>
+            </div>
+        {% endfor %}
+    {% endif %}
+
+
+</div>
+</body>
+<script>
+    layui.use(['form', 'layedit', 'laydate'], function () {
+        var form = layui.form
+            , layer = layui.layer
+        //监听指定开关
+        form.on('switch(switchTest)', function (data) {
+            layer.msg('sudo：' + (this.checked ? 'true' : 'false'), {
+                offset: '6px'
+            });
+            layer.tips('温馨提示：开启则通过sudo 执行命令', data.othis)
+        });
+        form.verify({
+            shell: function (value) {
+                if (value.length < 5) {
+                    return '标题至少得5个字符啊';
+                }
+            }
+        })
+    });
+</script>
+</html>
