@@ -30,10 +30,8 @@ urlpatterns = [
     path('logout/', mv.logout),
     path('', mv.index),
     path('allinfo/', mv.allinfo),
-    path('groupinfo/', mv.groupinfo),
     path('resinfo/', mv.resinfo),
     path('hostupdate/', mv.hostupdate),
-    path('groupupdate/', mv.groupupdate),
     path('scan/', mv.scan),
     path('shell/', mv.shell),
 

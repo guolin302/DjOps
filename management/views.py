@@ -1,17 +1,16 @@
 from django.shortcuts import render
 from django.shortcuts import redirect
-from django.http import JsonResponse, HttpResponse, HttpResponseBadRequest, HttpResponseNotFound, HttpResponseRedirect
+from django.http import  HttpResponse, HttpResponseRedirect
 from .models import *
 from django.forms.models import model_to_dict
-import hashlib, json
-import time, nmap, IPy
+import nmap
 from django.contrib.auth.models import auth
 from django.contrib.auth.decorators import login_required
-# Create your views here.
+
 from .Ansible2 import *
 
 from rest_framework.viewsets import ViewSet
-from rest_framework.pagination import PageNumberPagination
+
 from management import models
 from management import appseries
 from rest_framework.response import Response
@@ -26,7 +25,9 @@ ssh_user = ssh_info['SSH_USER']
 ssh_port = ssh_info['SSH_PORT']
 ssh_pass = ssh_info['SSH_PASS']
 
-
+from django_filters import rest_framework as filters
+from rest_framework.pagination import PageNumberPagination
+# Create your views here.
 def is_super_user(func):
     '''身份认证装饰器，
     :param func:
@@ -139,26 +140,6 @@ def login(request):
 
     return render(request, 'login/login.html')
 
-
-@login_required
-@is_super_user
-def groupinfo(request):
-    thepage = {}
-    thepage['h1'] = '分组信息'
-    thepage['name'] = '分组概览'
-    groupobj = AppGroup.objects.all()
-    allinfo = {}
-    for group in groupobj:
-        osobj = Hostinfo.objects.filter(app=group)
-        if osobj:
-            allinfo[group] = osobj
-        else:
-            allinfo[group] = ''
-    allinfo['未分组'] = Hostinfo.objects.filter(app=None)
-
-    return render(request, 'groupinfo.html', {'allinfo': allinfo, 'thepage': thepage})
-
-
 @login_required
 @is_super_user
 def resinfo(request):
@@ -173,10 +154,10 @@ def resinfo(request):
             os_info = model_to_dict(os_info)
             groupinfo = AppGroup.objects.all()
             vlaninfo = Vlaninfo.objects.all()
-            os_group = AppGroup.objects.get(id=os_info['app']).name
+            app = AppGroup.objects.get(id=os_info['app']).name
             print('666')
             return render(request, 'resinfo.html',
-                          {'osinfo': os_info, 'os_group': os_group, 'thepage': thepage, 'groupinfo': groupinfo,
+                          {'osinfo': os_info, 'os_group': app, 'thepage': thepage, 'groupinfo': groupinfo,
                            'vlaninfo': vlaninfo})
         except Exception as e:
             print(e)
@@ -206,7 +187,7 @@ def resinfo(request):
             osobj.notes = notes
             osobj.kernel = kernel
             vlanobj = Vlaninfo.objects.get(id=vlan)
-            osobj.os_vlan = vlanobj
+            osobj.vlan = vlanobj
             osobj.save()
 
             return redirect('/resinfo/?osid={}'.format(id_num))
@@ -301,22 +282,24 @@ def scan(request):
 
             nm = nmap.PortScanner()
             nm.scan(vlan, ssh_port, '-sS')
-            hosts_list = [(x, nm[x]['tcp'][22]['state']) for x in nm.all_hosts()]
+            hosts_list = [(x, nm[x]['tcp'][int(ssh_port)]['state']) for x in nm.all_hosts()]
             iplist = []
             for ip, status in hosts_list:
-                groupobj = AppGroup.objects.get(group_name=group)
+                groupobj = AppGroup.objects.get(name=group)
                 if status == 'open':
-                    if not Hostinfo.objects.filter(os_ip=ip):
-                        addos = Hostinfo.objects.create(os_ip=ip, os_vlan=vlanobj)
-                        addos.os_group.add(groupobj)
-                        print("create", ip, groupobj)
+                    if not Hostinfo.objects.filter(ip=ip):
+                        addos = Hostinfo.objects.create(ip=ip, vlan=vlanobj,app=groupobj)
+                        print("create", ip, groupobj,vlanobj)
                     else:
-                        addos = Hostinfo.objects.get(os_ip=ip, os_vlan=vlanobj)
-                        addos.os_group.add(groupobj)
-                        print("add", ip, groupobj)
+                        addos = Hostinfo.objects.get(ip=ip)
+                        addos.vlan=vlanobj
+                        addos.app=groupobj
+                        addos.save()
 
-            last_html = request.META.get('HTTP_REFERER', '/')
-            return HttpResponseRedirect(last_html)
+                        print("edit", ip, groupobj,vlanobj)
+
+            #last_html = request.META.get('HTTP_REFERER', '/')
+            return HttpResponseRedirect('/allinfo/')
     vlaninfo = Vlaninfo.objects.all()
     groupinfo = AppGroup.objects.all()
     return render(request, 'scan.html', {'vlaninfo': vlaninfo, 'groupinfo': groupinfo, 'thepage': thepage})

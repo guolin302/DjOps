@@ -40,6 +40,7 @@ INSTALLED_APPS = [
     'django.contrib.staticfiles',
     'management.apps.ManagementConfig',
     'rest_framework',
+    'django_filters',
 ]
 
 MIDDLEWARE = [
@@ -139,6 +140,9 @@ REST_FRAMEWORK = {
         'rest_framework.renderers.JSONRenderer', #json渲染器
         'rest_framework.renderers.BrowsableAPIRenderer', # 浏览器API渲染器,不需要注释掉就可以了
     ),
+    'DEFAULT_FILTER_BACKENDS': (
+        'django_filters.rest_framework.DjangoFilterBackend',
+    )
 }
 SSH_INFO = {
     'SSH_PORT' : '22',

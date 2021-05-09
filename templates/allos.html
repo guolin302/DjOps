@@ -1,7 +1,15 @@
 {% extends 'base.html' %}
 {% block content %}
-
+    <div class="demoTable">
+        ËÑË÷ID£º
+        <div class="layui-inline">
+            <input class="layui-input" name="id" id="demoReload" autocomplete="off">
+        </div>
+        <button class="layui-btn" data-type="reload">ËÑË÷</button>
+    </div>
     <table class="layui-hide" id="test" lay-filter="test"></table>
+
+
 
     <script type="text/html" id="toolbarDemo">
         <div class="layui-btn-container">
@@ -25,7 +33,7 @@
 
             table.render({
                 elem: '#test'
-                , url: '/api/hosts/?page=1&limit=10'
+                , url: '/api/hosts/'
                 , toolbar: '#toolbarDemo' //开启头部工具栏，并为其绑定左侧模板
 
                 , defaultToolbar: ['filter', 'exports', 'print', { //自定义头部工具栏右侧图标。如无需自定义，去除该参数即可
@@ -70,6 +78,7 @@
                     , {fixed: 'right', title: '操作', toolbar: '#barDemo',}
                 ]]
                 , page: true
+                ,id: 'tabReload'
             });
 
             //头工具栏事件
@@ -272,7 +281,28 @@
 
                 }
             });
+            var $ = layui.$, active = {
+                reload: function () {
+                    var demoReload = $('#demoReload');
 
+                    //Ö´ÐÐÖØÔØ
+                    table.reload('tabReload', {
+                        page: {
+                            curr: 1 //ÖØÐÂ´ÓµÚ 1 Ò³¿ªÊ¼
+                        }
+                        , where: {
+                            key: {
+                                ip : demoReload.val()
+                            }
+                        }
+                    });
+                }
+            };
+
+            $('.demoTable .layui-btn').on('click', function () {
+                var type = $(this).data('type');
+                active[type] ? active[type].call(this) : '';
+            });
         })
         ;
     </script>
