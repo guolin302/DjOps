@@ -5,9 +5,11 @@ from ansible.vars.manager import VariableManager
 from ansible.inventory.manager import InventoryManager
 from ansible.playbook.play import Play
 from ansible.executor.task_queue_manager import TaskQueueManager
+from ansible.executor.playbook_executor import PlaybookExecutor
 from ansible.plugins.callback import CallbackBase
 from ansible import context
 import ansible.constants as C
+
 
 
 class ResultCallback(CallbackBase):
@@ -36,7 +38,7 @@ class MyAnsiable():
                  remote_password=None,  # ssh 用户的密码，应该是一个字典, key 必须是 conn_pass
                  private_key_file=None,  # 指定自定义的私钥地址
                  module_path=None,  # 模块路径，可以指定一个自定义模块的路径
-                 become=None, become_method='sudo',become_user='root', # 是否提权
+                 become=None, become_method='sudo', become_user='root',  # 是否提权
                  check=False,
                  diff=False,
                  listhosts=None, listtasks=None, listtags=None,
@@ -45,7 +47,8 @@ class MyAnsiable():
                  start_at_task=None,
                  forks=50,
                  poll_interval=15,
-                 inventory=None):
+                 port=None,
+                 iplist=None, ):  # inventory iplist
         # 函数文档注释
         """
         初始化函数，定义的默认的选项值，
@@ -69,24 +72,18 @@ class MyAnsiable():
             diff=diff,
             poll_interval=poll_interval,
             start_at_task=start_at_task,
-            timeout=5, # ssh超时时间
-        )
+            timeout=5,  # ssh超时时间
 
-        # 三元表达式，假如没有传递 inventory, 就使用 "8.8.8.8,"
-        # 指定 inventory 文件
-        # inventory 的值可以是一个 资产清单文件
-        # 也可以是一个包含主机的元组，这个仅仅适用于测试
-        #  比如 ： 1.1.1.1,    # 如果只有一个 IP 最后必须有英文的逗号
-        #  或者： 1.1.1.1, 2.2.2.2
-        self.inventory = inventory if inventory else "8.8.8.8,"
+        )
 
         # 实例化数据解析器
         self.loader = DataLoader()
-
         # 实例化 资产配置对象
-        self.inv_obj = InventoryManager(loader=self.loader, sources=self.inventory)
-
-        # 设置密码
+        # self.inv_obj = InventoryManager(loader=self.loader, sources=self.inventory)
+        self.inv_obj = InventoryManager(loader=self.loader)
+        for ip in iplist:
+            self.inv_obj.add_host(host=ip, group='all', port=port)
+            # 设置密码
         self.passwords = remote_password
 
         # 实例化回调插件对象
@@ -94,15 +91,14 @@ class MyAnsiable():
 
         # 变量管理器
         self.variable_manager = VariableManager(self.loader, self.inv_obj)
-
-    def run(self, hosts, gether_facts="no", module="ping", args='', task_time=0):
+    def run(self, gether_facts="no", module="ping", args='', task_time=0):
         """
         参数说明：
         task_time -- 执行异步任务时等待的秒数，这个需要大于 0 ，等于 0 的时候不支持异步（默认值）。这个值应该等于执行任务实际耗时时间为好
         """
         play_source = dict(
             name="Ansible play",
-            hosts=hosts,
+            hosts='all',
             gather_facts=gether_facts,
             tasks=[
                 # 这里每个 task 就是这个列表中的一个元素，格式是嵌套的字典
@@ -132,23 +128,18 @@ class MyAnsiable():
         Keyword arguments:
         playbooks --  需要是一个列表类型
         """
-        from ansible.executor.playbook_executor import PlaybookExecutor
 
-        playbook = PlaybookExecutor(playbooks=playbooks,
+        playbook = PlaybookExecutor(playbooks=[playbooks],
                                     inventory=self.inv_obj,
                                     variable_manager=self.variable_manager,
                                     loader=self.loader,
                                     passwords=self.passwords)
-
         # 使用回调函数
         playbook._tqm._stdout_callback = self.results_callback
-
         result = playbook.run()
 
     def get_result(self):
         result_raw = {'success': {}, 'failed': {}, 'unreachable': {}}
-
-        # print(self.results_callback.host_ok)
         for host, result in self.results_callback.host_ok.items():
             result_raw['success'][host] = result._result
         for host, result in self.results_callback.host_failed.items():
@@ -156,14 +147,12 @@ class MyAnsiable():
         for host, result in self.results_callback.host_unreachable.items():
             result_raw['unreachable'][host] = result._result
         return result_raw
-        # 最终打印结果，并且使用 JSON 继续格式化
-#      return(json.dumps(result_raw, indent=4))
+
 
 if __name__ == '__main__':
-    host_list = ['1.1.1.1','2.2.2.2','3.3.3.3']
-    sources = ','.join(host_list)
-    if len(host_list) == 1:
-        sources += ','
-    ans = MyAnsiable(inventory=sources, remote_user='root', remote_password={"conn_pass": 'root'})
-    ans.playbook()
+    host_list = ['192.168.101.12','192.168.101.18']
+    ans = MyAnsiable(iplist=host_list, remote_user='root',port=666)
+    ans.run()
+    print(ans.get_result())
+    ans.playbook(playbooks='/opt/a.yml')
     print(ans.get_result())

@@ -39,7 +39,7 @@ urlpatterns = [
 
     #path('api/hosts/', mv.HostView.as_view(actions={'get': 'retrieve', 'post': 'create'})),
 
-    path('api/hosts/', mv.HostView.as_view(actions={'get': 'list','post':'create'})),
+    path('api/hosts/', mv.HostView.as_view(actions={'get': 'list'})),
     re_path('api/hosts/(?P<pk>\d+)',
             mv.HostView.as_view(actions={'get': 'retrieve','put':'update'})),
 

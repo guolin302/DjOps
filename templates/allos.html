@@ -32,8 +32,8 @@
                 }]
                 , cols: [[
                     {type: 'checkbox', fixed: 'left'}
-                    , {field: 'id', title: 'ID', fixed: 'left', unresize: true, sort: true}
-                    , {field: 'ip', title: 'IP', width: 120, sort: true}
+                    , {field: 'id', title: 'ID', fixed: 'left', width: 70,unresize: true, sort: true}
+                    , {field: 'ip', title: 'IP', width: 140, sort: true}
                     , {field: 'hostname', title: '主机名', width: 150, sort: true}
                     , {
                         field: 'app', title: '应用', width: 100, sort: true, templet: function (res) {
@@ -55,7 +55,7 @@
                             return '<em>' + res.cabinet.name + '</em>'
                         }
                     }
-                    , {field: 'u', title: 'U位', sort: true}
+                    , {field: 'u', title: 'U位', sort: true,width: 100,}
                     , {field: 'kernel', title: '内核版本', width: 100, sort: true, hide: true}
                     , {field: 'system', title: '系统版本', width: 100, sort: true}
                     , {field: 'cpu', title: 'cpu型号', width: 100, sort: true, hide: true}

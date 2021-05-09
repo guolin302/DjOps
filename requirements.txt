@@ -11,7 +11,6 @@ MarkupSafe==1.1.1
 nmap==0.0.1
 packaging==20.9
 pycparser==2.20
-PyMySQL==1.0.2
 pyparsing==2.4.7
 pytz==2021.1
 PyYAML==5.4.1

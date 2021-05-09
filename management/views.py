@@ -5,23 +5,27 @@ from .models import *
 from django.forms.models import model_to_dict
 import hashlib, json
 import time, nmap, IPy
-from DjOps import settings
+
 from django.contrib.auth.models import auth
 from django.contrib.auth.decorators import login_required
 # Create your views here.
 from .Ansible2 import *
-from django.conf import settings
-from rest_framework.viewsets import ModelViewSet
+
+from rest_framework.viewsets import ViewSet
 from management import models
 from management import appseries
 from rest_framework.response import Response
 from rest_framework import status
 import os
 from django.views.decorators.clickjacking import xframe_options_exempt
+
+from DjOps import settings
+
 ssh_info = settings.SSH_INFO
 ssh_user = ssh_info['SSH_USER']
 ssh_port = ssh_info['SSH_PORT']
 ssh_pass = ssh_info['SSH_PASS']
+
 
 def is_super_user(func):
     '''身份认证装饰器，
@@ -42,40 +46,52 @@ def return400():
 
 
 class APIResponse(Response):
-    def __init__(self, status=0, msg='成功', results=None, http_status=None,
+    def __init__(self, data, status=0, msg='成功', results=None, http_status=None,
                  headers=None, exception=False, content_type=None, **kwargs):
         # 将status、msg、results、kwargs格式化成data
-        data = {
-            'status': status,
+        return_data = {
+            'code': status,
             'msg': msg,
+            'data': data,
         }
         # results只要不为空都是数据：False、0、'' 都是数据 => 条件不能写if results
         if results is not None:
-            data['results'] = results
+            return_data['results'] = results
         # 将kwargs中额外的k-v数据添加到data中
-        data.update(**kwargs)
-        super().__init__(data=data, status=http_status, headers=headers, exception=exception, content_type=content_type)
+        return_data.update(**kwargs)
+        super().__init__(data=return_data, status=http_status, headers=headers, exception=exception,
+                         content_type=content_type)
 
 
-class HostView(ModelViewSet):  # 五个接口都有，但是路由有问题,通过ModelViewSet下的as传入action
-    queryset = models.Hostinfo.objects
-    serializer_class = appseries.HostinfoSerializer
+class HostView(ViewSet):  # ModelVi
+
+    def list(self, request):
+        hostinfo = models.Hostinfo.objects.all()
+        serializer = appseries.HostinfoSerializer(hostinfo, many=True)
+        return APIResponse(serializer.data)
 
 
 def RunAnsible(ip, _module='ping', _args=None, _become=None):
-    print(ip, _module, _args,_become)
-    ans = MyAnsiable(inventory=ip, remote_user=ssh_user, become=_become, remote_password={"conn_pass": ssh_pass})
+    iplist=ip
+    try:
+        iplist.remove('')
+    except Exception as e:
+        print(e)
+    print(iplist, _module, _args, _become)
+    ans = MyAnsiable(iplist=iplist, remote_user=ssh_user, become=_become, remote_password={"conn_pass": ssh_pass},
+                     port=ssh_port)
     if _module != 'setup':
-        ans.run(hosts=ip, module=_module, args=_args)
+        ans.run(module=_module, args=_args)
     else:
-        ans.run(hosts=ip, module=_module)
+        ans.run(module=_module)
     return_dic = ans.get_result()
-    restr=("success:{} failed:{} unreachable:{}".format(len(return_dic['success']), len(return_dic['failed']),
-                                                       len(return_dic['unreachable'])))
+
+    restr = ("success:{} failed:{} unreachable:{}".format(len(return_dic['success']), len(return_dic['failed']),
+                                                          len(return_dic['unreachable'])))
     success = return_dic['success']
     unreachable = return_dic['unreachable']
     failed = return_dic['failed']
-    return success, unreachable, failed,restr
+    return success, unreachable, failed, restr
 
 
 @login_required
@@ -120,7 +136,6 @@ def login(request):
             return render(request, 'login/login.html', {'message': message})
 
     return render(request, 'login/login.html')
-
 
 
 @login_required
@@ -197,15 +212,16 @@ def resinfo(request):
             print(e, '----')
             return HttpResponseRedirect(last_html)
 
+
 @login_required
 @is_super_user
 @xframe_options_exempt
 def hostupdate(request):
     ip = request.GET.get('ip')
     if ip:
-        success_dic,_a,_b,restr = RunAnsible(ip=ip,_module='setup',_become='yes')
+        iplist = str(ip).split(',')
+        success_dic, _a, _b, restr = RunAnsible(ip=iplist, _module='setup', _become='yes')
         if success_dic:
-            iplist = str(ip).split(',')[:-1]
             try:
                 for ip in iplist:
                     facts_dics = success_dic[ip]['ansible_facts']
@@ -224,7 +240,7 @@ def hostupdate(request):
                     devices = facts_dics['ansible_devices']
                     device = {}
                     for i in devices.keys():
-                        if 'storage' in facts_dics['ansible_devices'][i]['host']:
+                        if 'storage' in facts_dics['ansible_devices'][i]['host'] or 'VMware Virtual S' in facts_dics['ansible_devices'][i]['model']:
                             device[i] = facts_dics['ansible_devices'][i]['size']
                     disk_size = 0
                     for diskname in device:
@@ -302,6 +318,7 @@ def scan(request):
     groupinfo = AppGroup.objects.all()
     return render(request, 'scan.html', {'vlaninfo': vlaninfo, 'groupinfo': groupinfo, 'thepage': thepage})
 
+
 def get_sh_file():
     fileList = []
     path = str(settings.BASE_DIR) + "/shell"
@@ -312,12 +329,14 @@ def get_sh_file():
                 file_path = "{}/{}".format(cur_dir, f)
                 fileList.append({'name': f, 'path': file_path})
     return fileList
+
+
 @login_required
 @is_super_user
 @xframe_options_exempt
 def shell(request):
-    fileList=get_sh_file()
-    shell_res=[]
+    fileList = get_sh_file()
+    shell_res = []
     if request.method == 'POST':
         print('post')
         iplist = request.POST.getlist('ip')
@@ -325,6 +344,8 @@ def shell(request):
         is_sudo = request.POST.get('open')
         if ctype == 'script':
             command = request.POST.get('script')
+            script_args = request.POST.get('script_args')
+            command = "{} {}".format(command,script_args)
         elif ctype == 'shell':
             command = request.POST.get('shell')
         else:
@@ -334,8 +355,8 @@ def shell(request):
         else:
             become = None
         if iplist and command:
-            ip = ",".join(iplist)
-            success, unreachable, failed,restr = RunAnsible(ip=ip + ",", _module=ctype, _args=command, _become=become)
+
+            success, unreachable, failed, restr = RunAnsible(ip=iplist, _module=ctype, _args=command, _become=become)
             for i in iplist:
                 resdic = {}
                 resstr = ''
@@ -363,8 +384,8 @@ def shell(request):
             print(iplist, len(iplist))
             last_html = request.META.get('HTTP_REFERER', '/')
             return HttpResponseRedirect(last_html)
-    return render(request, 'shell.html', {'filelist': fileList, 'iplist': iplist, 'shell_res': shell_res, 'run_type':ctype})
-
+    return render(request, 'shell.html',
+                  {'filelist': fileList, 'iplist': iplist, 'shell_res': shell_res, 'run_type': ctype})
 
 
 def logout(request):

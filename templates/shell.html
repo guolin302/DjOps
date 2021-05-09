@@ -39,6 +39,14 @@
                             {% endfor %}
                         </select>
                     </div>
+                    <div class="layui-form-item">
+                        <label class="layui-form-label">jiaoben canshu</label>
+                        <div class="layui-input-block">
+                            <input type="text" name="script_args" lay-verify="title" autocomplete="off"
+                                   placeholder="jiaoben canshu" class="layui-input">
+
+                        </div>
+                    </div>
                 </div>
             {% endif %}
             <div class="layui-form-item">
@@ -46,7 +54,7 @@
                 <div class="layui-input-block">
                     <input type="checkbox" checked="" name="open" lay-skin="switch" lay-filter="switchTest"
                            lay-text="是|否">
-                    <input type="text"  hidden="yes" readonly  unselectable="on" name="type" value="{{ run_type }}"/>
+                    <input type="text" hidden="yes" readonly unselectable="on" name="type" value="{{ run_type }}"/>
                     <button lay-filter="submit" lay-submit class="layui-btn" type="submit">开始执行</button>
                 </div>
             </div>
