@@ -5,13 +5,13 @@ from .models import *
 from django.forms.models import model_to_dict
 import hashlib, json
 import time, nmap, IPy
-
 from django.contrib.auth.models import auth
 from django.contrib.auth.decorators import login_required
 # Create your views here.
 from .Ansible2 import *
 
 from rest_framework.viewsets import ViewSet
+from rest_framework.pagination import PageNumberPagination
 from management import models
 from management import appseries
 from rest_framework.response import Response
@@ -64,26 +64,28 @@ class APIResponse(Response):
 
 
 class HostView(ViewSet):  # ModelVi
-
     def list(self, request):
         hostinfo = models.Hostinfo.objects.all()
         serializer = appseries.HostinfoSerializer(hostinfo, many=True)
         return APIResponse(serializer.data)
 
 
-def RunAnsible(ip, _module='ping', _args=None, _become=None):
-    iplist=ip
+def RunAnsible(ip, _module='ping', _args=None, _become=None, _type='model'):
+    iplist = ip
     try:
         iplist.remove('')
     except Exception as e:
         print(e)
-    print(iplist, _module, _args, _become)
+    print(iplist, _module, _args, _become,_type)
     ans = MyAnsiable(iplist=iplist, remote_user=ssh_user, become=_become, remote_password={"conn_pass": ssh_pass},
                      port=ssh_port)
-    if _module != 'setup':
-        ans.run(module=_module, args=_args)
-    else:
-        ans.run(module=_module)
+    if _type == 'model':
+        if _module != 'setup':
+            ans.run(module=_module, args=_args)
+        else:
+            ans.run(module=_module)
+    elif _type == 'playbook':
+        ans.playbook(playbooks=_args)
     return_dic = ans.get_result()
 
     restr = ("success:{} failed:{} unreachable:{}".format(len(return_dic['success']), len(return_dic['failed']),
@@ -240,7 +242,8 @@ def hostupdate(request):
                     devices = facts_dics['ansible_devices']
                     device = {}
                     for i in devices.keys():
-                        if 'storage' in facts_dics['ansible_devices'][i]['host'] or 'VMware Virtual S' in facts_dics['ansible_devices'][i]['model']:
+                        if 'storage' in facts_dics['ansible_devices'][i]['host'] or 'VMware Virtual S' in \
+                                facts_dics['ansible_devices'][i]['model']:
                             device[i] = facts_dics['ansible_devices'][i]['size']
                     disk_size = 0
                     for diskname in device:
@@ -319,13 +322,15 @@ def scan(request):
     return render(request, 'scan.html', {'vlaninfo': vlaninfo, 'groupinfo': groupinfo, 'thepage': thepage})
 
 
-def get_sh_file():
+def get_sh_file(fdir, fstr):
     fileList = []
-    path = str(settings.BASE_DIR) + "/shell"
+    path = str(settings.BASE_DIR) + "/DjOps/localfile" + fdir
     # 先添加目录级别
+
     for cur_dir, dirs, files in os.walk(path):
         for f in files:  # 当前目录下的所有文件
-            if f.endswith('.sh'):
+
+            if f.endswith(fstr):
                 file_path = "{}/{}".format(cur_dir, f)
                 fileList.append({'name': f, 'path': file_path})
     return fileList
@@ -335,17 +340,20 @@ def get_sh_file():
 @is_super_user
 @xframe_options_exempt
 def shell(request):
-    fileList = get_sh_file()
+    fileList = []
     shell_res = []
     if request.method == 'POST':
-        print('post')
         iplist = request.POST.getlist('ip')
         ctype = request.POST.get('type')
         is_sudo = request.POST.get('open')
         if ctype == 'script':
+            fileList = get_sh_file("/shell", '.sh')
+        elif ctype == 'playbook':
+            fileList = get_sh_file("/playbook", '.yml')
+        if ctype == 'script':
             command = request.POST.get('script')
             script_args = request.POST.get('script_args')
-            command = "{} {}".format(command,script_args)
+            command = "{} {}".format(command, script_args)
         elif ctype == 'shell':
             command = request.POST.get('shell')
         else:
@@ -354,9 +362,14 @@ def shell(request):
             become = 'yes'
         else:
             become = None
-        if iplist and command:
-
-            success, unreachable, failed, restr = RunAnsible(ip=iplist, _module=ctype, _args=command, _become=become)
+        if iplist:
+            if ctype == 'playbook':
+                command = request.POST.get('playbook')
+                print(command)
+                success, unreachable, failed, restr = RunAnsible(ip=iplist,_args=command, _type='playbook',_become=become)
+            else:
+                success, unreachable, failed, restr = RunAnsible(ip=iplist, _module=ctype, _args=command,
+                                                                 _become=become)
             for i in iplist:
                 resdic = {}
                 resstr = ''
@@ -374,12 +387,19 @@ def shell(request):
                     resdic['resstr'] += resstr
                 shell_res.append(resdic)
 
+
         else:
             last_html = request.META.get('HTTP_REFERER', '/')
             return HttpResponseRedirect(last_html)
     else:
+
         iplist = str(request.GET.get('ip')).split(',')[:-1]
         ctype = request.GET.get('type')
+        if ctype == 'script':
+            fileList = get_sh_file("/shell", '.sh')
+        elif ctype == 'playbook':
+            fileList = get_sh_file("/playbook", '.yml')
+        print(fileList, 1111111111)
         if len(iplist) == 0:
             print(iplist, len(iplist))
             last_html = request.META.get('HTTP_REFERER', '/')

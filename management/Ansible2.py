@@ -54,6 +54,7 @@ class MyAnsiable():
         初始化函数，定义的默认的选项值，
         在初始化的时候可以传参，以便覆盖默认选项的值
         """
+        print(become)
         context.CLIARGS = ImmutableDict(
             connection=connection,
             remote_user=remote_user,
