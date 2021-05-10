@@ -1,0 +1,208 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project version="4">
+  <component name="ChangeListManager">
+    <list default="true" id="d8976e9e-9d12-4e67-ba71-12bebfaecad1" name="默认更改列表" comment="">
+      <change afterPath="$PROJECT_DIR$/DjOps/tools/Scan.py" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/DjOps/tools/__init__.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/DjOps/settings.py" beforeDir="false" afterPath="$PROJECT_DIR$/DjOps/settings.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/DjOps/urls.py" beforeDir="false" afterPath="$PROJECT_DIR$/DjOps/urls.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/README.md" beforeDir="false" afterPath="$PROJECT_DIR$/README.md" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/management/Ansible2.py" beforeDir="false" afterPath="$PROJECT_DIR$/management/Ansible2.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/management/models.py" beforeDir="false" afterPath="$PROJECT_DIR$/management/models.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/management/views.py" beforeDir="false" afterPath="$PROJECT_DIR$/management/views.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/requirements.txt" beforeDir="false" afterPath="$PROJECT_DIR$/requirements.txt" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/templates/allos.html" beforeDir="false" afterPath="$PROJECT_DIR$/templates/allos.html" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/templates/base.html" beforeDir="false" afterPath="$PROJECT_DIR$/templates/base.html" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/templates/shell.html" beforeDir="false" afterPath="$PROJECT_DIR$/templates/shell.html" afterDir="false" />
+    </list>
+    <option name="SHOW_DIALOG" value="false" />
+    <option name="HIGHLIGHT_CONFLICTS" value="true" />
+    <option name="HIGHLIGHT_NON_ACTIVE_CHANGELIST" value="false" />
+    <option name="LAST_RESOLUTION" value="IGNORE" />
+  </component>
+  <component name="DjangoConsoleOptions" custom-start-script="import sys; print('Python %s on %s' % (sys.version, sys.platform))&#10;import django; print('Django %s' % django.get_version())&#10;sys.path.extend([WORKING_DIR_AND_PYTHON_PATHS])&#10;if 'setup' in dir(django): django.setup()&#10;import django_manage_shell; django_manage_shell.run(PROJECT_ROOT)">
+    <option name="myCustomStartScript" value="import sys; print('Python %s on %s' % (sys.version, sys.platform))&#10;import django; print('Django %s' % django.get_version())&#10;sys.path.extend([WORKING_DIR_AND_PYTHON_PATHS])&#10;if 'setup' in dir(django): django.setup()&#10;import django_manage_shell; django_manage_shell.run(PROJECT_ROOT)" />
+  </component>
+  <component name="FileTemplateManagerImpl">
+    <option name="RECENT_TEMPLATES">
+      <list>
+        <option value="HTML File" />
+        <option value="Python Script" />
+      </list>
+    </option>
+  </component>
+  <component name="Git.Settings">
+    <option name="RECENT_GIT_ROOT_PATH" value="$PROJECT_DIR$" />
+  </component>
+  <component name="ProjectId" id="1s8vHzS4z1tT73D7VfGgZBMV2uw" />
+  <component name="ProjectLevelVcsManager" settingsEditedManually="true">
+    <ConfirmationsSetting value="2" id="添加" />
+  </component>
+  <component name="ProjectViewState">
+    <option name="hideEmptyMiddlePackages" value="true" />
+    <option name="showLibraryContents" value="true" />
+    <option name="showMembers" value="true" />
+  </component>
+  <component name="PropertiesComponent">
+    <property name="ASKED_ADD_EXTERNAL_FILES" value="true" />
+    <property name="ASKED_SHARE_PROJECT_CONFIGURATION_FILES" value="true" />
+    <property name="DefaultHtmlFileTemplate" value="HTML File" />
+    <property name="RunOnceActivity.OpenProjectViewOnStart" value="true" />
+    <property name="RunOnceActivity.ShowReadmeOnStart" value="true" />
+    <property name="WebServerToolWindowFactoryState" value="false" />
+    <property name="last_opened_file_path" value="$PROJECT_DIR$/DjOps/tools" />
+    <property name="node.js.detected.package.eslint" value="true" />
+    <property name="node.js.detected.package.tslint" value="true" />
+    <property name="node.js.path.for.package.eslint" value="project" />
+    <property name="node.js.path.for.package.tslint" value="project" />
+    <property name="node.js.selected.package.eslint" value="(autodetect)" />
+    <property name="node.js.selected.package.tslint" value="(autodetect)" />
+    <property name="settings.editor.selected.configurable" value="com.jetbrains.django.DjangoModulesConfigurable" />
+  </component>
+  <component name="RecentsManager">
+    <key name="CopyFile.RECENT_KEYS">
+      <recent name="$PROJECT_DIR$/DjOps/tools" />
+      <recent name="$PROJECT_DIR$/templates" />
+    </key>
+  </component>
+  <component name="RunManager" selected="Python.Scan">
+    <configuration name="Scan" type="PythonConfigurationType" factoryName="Python" temporary="true" nameIsGenerated="true">
+      <module name="DjOps" />
+      <option name="INTERPRETER_OPTIONS" value="" />
+      <option name="PARENT_ENVS" value="true" />
+      <envs>
+        <env name="PYTHONUNBUFFERED" value="1" />
+      </envs>
+      <option name="SDK_HOME" value="" />
+      <option name="WORKING_DIRECTORY" value="$PROJECT_DIR$/DjOps/tools" />
+      <option name="IS_MODULE_SDK" value="true" />
+      <option name="ADD_CONTENT_ROOTS" value="true" />
+      <option name="ADD_SOURCE_ROOTS" value="true" />
+      <EXTENSION ID="PythonCoverageRunConfigurationExtension" runner="coverage.py" />
+      <option name="SCRIPT_NAME" value="$PROJECT_DIR$/DjOps/tools/Scan.py" />
+      <option name="PARAMETERS" value="" />
+      <option name="SHOW_COMMAND_LINE" value="false" />
+      <option name="EMULATE_TERMINAL" value="false" />
+      <option name="MODULE_MODE" value="false" />
+      <option name="REDIRECT_INPUT" value="false" />
+      <option name="INPUT_FILE" value="" />
+      <method v="2" />
+    </configuration>
+    <configuration name="DjOps" type="Python.DjangoServer" factoryName="Django server">
+      <module name="DjOps" />
+      <option name="INTERPRETER_OPTIONS" value="" />
+      <option name="PARENT_ENVS" value="true" />
+      <envs>
+        <env name="PYTHONUNBUFFERED" value="1" />
+        <env name="DJANGO_SETTINGS_MODULE" value="DjOps.settings" />
+      </envs>
+      <option name="SDK_HOME" value="" />
+      <option name="WORKING_DIRECTORY" value="" />
+      <option name="IS_MODULE_SDK" value="false" />
+      <option name="ADD_CONTENT_ROOTS" value="true" />
+      <option name="ADD_SOURCE_ROOTS" value="true" />
+      <option name="launchJavascriptDebuger" value="false" />
+      <option name="port" value="8000" />
+      <option name="host" value="" />
+      <option name="additionalOptions" value="" />
+      <option name="browserUrl" value="" />
+      <option name="runTestServer" value="false" />
+      <option name="runNoReload" value="false" />
+      <option name="useCustomRunCommand" value="false" />
+      <option name="customRunCommand" value="" />
+      <method v="2" />
+    </configuration>
+    <recent_temporary>
+      <list>
+        <item itemvalue="Python.Scan" />
+      </list>
+    </recent_temporary>
+  </component>
+  <component name="SvnConfiguration">
+    <configuration />
+  </component>
+  <component name="TaskManager">
+    <task active="true" id="Default" summary="Default task">
+      <changelist id="d8976e9e-9d12-4e67-ba71-12bebfaecad1" name="默认更改列表" comment="" />
+      <created>1620266948198</created>
+      <option name="number" value="Default" />
+      <option name="presentableId" value="Default" />
+      <updated>1620266948198</updated>
+      <workItem from="1620266968209" duration="14218000" />
+      <workItem from="1620297902472" duration="40964000" />
+      <workItem from="1620444710837" duration="24551000" />
+      <workItem from="1620611780755" duration="16607000" />
+    </task>
+    <servers />
+  </component>
+  <component name="TypeScriptGeneratedFilesManager">
+    <option name="version" value="2" />
+  </component>
+  <component name="VcsManagerConfiguration">
+    <option name="ADD_EXTERNAL_FILES_SILENTLY" value="true" />
+  </component>
+  <component name="WindowStateProjectService">
+    <state x="2102" y="198" key="#DjOps" timestamp="1620611762515">
+      <screen x="1440" y="25" width="1920" height="1175" />
+    </state>
+    <state x="2102" y="198" key="#DjOps/0.25.1440.875/1440.25.1920.1175@1440.25.1920.1175" timestamp="1620611762515" />
+    <state x="1864" y="271" key="#com.intellij.execution.impl.EditConfigurationsDialog" timestamp="1620611734756">
+      <screen x="1440" y="25" width="1920" height="1175" />
+    </state>
+    <state x="1864" y="271" key="#com.intellij.execution.impl.EditConfigurationsDialog/0.25.1440.875/1440.25.1920.1175@1440.25.1920.1175" timestamp="1620611734756" />
+    <state x="2232" y="418" key="#com.intellij.fileTypes.FileTypeChooser" timestamp="1620621823123">
+      <screen x="1440" y="25" width="1920" height="1175" />
+    </state>
+    <state x="2232" y="418" key="#com.intellij.fileTypes.FileTypeChooser/0.25.1440.875/1440.25.1920.1175@1440.25.1920.1175" timestamp="1620621823123" />
+    <state x="1577" y="217" width="1440" height="875" key="#com.intellij.openapi.keymap.impl.ui.EditKeymapsDialog" timestamp="1620352953311">
+      <screen x="1440" y="25" width="1920" height="1175" />
+    </state>
+    <state x="1577" y="217" width="1440" height="875" key="#com.intellij.openapi.keymap.impl.ui.EditKeymapsDialog/0.25.1440.875/1440.25.1920.1175@1440.25.1920.1175" timestamp="1620352953311" />
+    <state x="2138" y="363" key="#com.intellij.refactoring.safeDelete.UnsafeUsagesDialog" timestamp="1620475886560">
+      <screen x="1440" y="25" width="1920" height="1175" />
+    </state>
+    <state x="2138" y="363" key="#com.intellij.refactoring.safeDelete.UnsafeUsagesDialog/0.25.1440.875/1440.25.1920.1175@1440.25.1920.1175" timestamp="1620475886560" />
+    <state x="1540" y="125" width="1720" height="975" key="DiffContextDialog" timestamp="1620470649782">
+      <screen x="1440" y="25" width="1920" height="1175" />
+    </state>
+    <state x="1540" y="125" width="1720" height="975" key="DiffContextDialog/0.25.1440.875/1440.25.1920.1175@1440.25.1920.1175" timestamp="1620470649782" />
+    <state width="1878" height="327" key="GridCell.Tab.0.bottom" timestamp="1620633375399">
+      <screen x="1440" y="25" width="1920" height="1175" />
+    </state>
+    <state width="1878" height="327" key="GridCell.Tab.0.bottom/0.25.1440.875/1440.25.1920.1175@1440.25.1920.1175" timestamp="1620633375399" />
+    <state width="1878" height="327" key="GridCell.Tab.0.center" timestamp="1620633375398">
+      <screen x="1440" y="25" width="1920" height="1175" />
+    </state>
+    <state width="1878" height="327" key="GridCell.Tab.0.center/0.25.1440.875/1440.25.1920.1175@1440.25.1920.1175" timestamp="1620633375398" />
+    <state width="1878" height="327" key="GridCell.Tab.0.left" timestamp="1620633375397">
+      <screen x="1440" y="25" width="1920" height="1175" />
+    </state>
+    <state width="1878" height="327" key="GridCell.Tab.0.left/0.25.1440.875/1440.25.1920.1175@1440.25.1920.1175" timestamp="1620633375397" />
+    <state width="1878" height="327" key="GridCell.Tab.0.right" timestamp="1620633375399">
+      <screen x="1440" y="25" width="1920" height="1175" />
+    </state>
+    <state width="1878" height="327" key="GridCell.Tab.0.right/0.25.1440.875/1440.25.1920.1175@1440.25.1920.1175" timestamp="1620633375399" />
+    <state width="237" height="457" key="HiddenNamespacesPopup" timestamp="1620354924694">
+      <screen x="1440" y="25" width="1920" height="1175" />
+    </state>
+    <state width="237" height="457" key="HiddenNamespacesPopup/0.25.1440.875/1440.25.1920.1175@1440.25.1920.1175" timestamp="1620354924694" />
+    <state x="1909" y="248" key="SettingsEditor" timestamp="1620611761311">
+      <screen x="1440" y="25" width="1920" height="1175" />
+    </state>
+    <state x="1909" y="248" key="SettingsEditor/0.25.1440.875/1440.25.1920.1175@1440.25.1920.1175" timestamp="1620611761311" />
+    <state width="500" height="445" key="SwitcherDM" timestamp="1620277838842">
+      <screen x="1440" y="25" width="1920" height="1175" />
+    </state>
+    <state width="500" height="445" key="SwitcherDM/0.25.1440.875/1440.25.1920.1175@1440.25.1920.1175" timestamp="1620277838842" />
+    <state x="2065" y="289" width="670" height="676" key="search.everywhere.popup" timestamp="1620627070137">
+      <screen x="1440" y="25" width="1920" height="1175" />
+    </state>
+    <state x="2065" y="289" width="670" height="676" key="search.everywhere.popup/0.25.1440.875/1440.25.1920.1175@1440.25.1920.1175" timestamp="1620627070137" />
+  </component>
+  <component name="com.intellij.coverage.CoverageDataManagerImpl">
+    <SUITE FILE_PATH="coverage/DjOps$Asnible_test.coverage" NAME="Asnible_test Coverage Results" MODIFIED="1620281015940" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="true" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="$PROJECT_DIR$/management/testapi" />
+    <SUITE FILE_PATH="coverage/DjOps$Scan.coverage" NAME="Scan Coverage Results" MODIFIED="1620623380957" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="true" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="$PROJECT_DIR$/DjOps/tools" />
+    <SUITE FILE_PATH="coverage/DjOps$views.coverage" NAME="views Coverage Results" MODIFIED="1620281154377" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="true" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="$PROJECT_DIR$/management" />
+    <SUITE FILE_PATH="coverage/DjOps$Ansible2.coverage" NAME="Ansible2 Coverage Results" MODIFIED="1620282033337" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="true" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="$PROJECT_DIR$/management" />
+  </component>
+</project>

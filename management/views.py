@@ -1,14 +1,13 @@
 from django.shortcuts import render
 from django.shortcuts import redirect
-from django.http import  HttpResponse, HttpResponseRedirect
+from django.http import  HttpResponseRedirect, JsonResponse
 from .models import *
 from django.forms.models import model_to_dict
-import nmap
 from django.contrib.auth.models import auth
 from django.contrib.auth.decorators import login_required
 
-from .Ansible2 import *
-
+from management.Ansible2 import *
+from DjOps.tools.Scan import Scan
 from rest_framework.viewsets import ViewSet
 
 from management import models
@@ -25,8 +24,9 @@ ssh_user = ssh_info['SSH_USER']
 ssh_port = ssh_info['SSH_PORT']
 ssh_pass = ssh_info['SSH_PASS']
 
-from django_filters import rest_framework as filters
 from rest_framework.pagination import PageNumberPagination
+
+
 # Create your views here.
 def is_super_user(func):
     '''身份认证装饰器，
@@ -46,12 +46,23 @@ def return400():
     return APIResponse(results="请求的数据不存在", status=status.HTTP_400_BAD_REQUEST, msg="失败")
 
 
+class APIJsonResponse(JsonResponse):
+    def __init__(self, data, code=0, log=None, **kwargs):
+        return_data = {
+            'code': code,
+            'log': log,
+            'msg': data,
+        }
+        super().__init__(data=return_data, **kwargs)
+
+
 class APIResponse(Response):
-    def __init__(self, data, status=0, msg='成功', results=None, http_status=None,
+    def __init__(self, data, status=0, count=None, msg='成功', results=None, http_status=None,
                  headers=None, exception=False, content_type=None, **kwargs):
         # 将status、msg、results、kwargs格式化成data
         return_data = {
             'code': status,
+            'count': count,
             'msg': msg,
             'data': data,
         }
@@ -64,11 +75,20 @@ class APIResponse(Response):
                          content_type=content_type)
 
 
-class HostView(ViewSet):  # ModelVi
-    def list(self, request):
-        hostinfo = models.Hostinfo.objects.all()
-        serializer = appseries.HostinfoSerializer(hostinfo, many=True)
-        return APIResponse(serializer.data)
+class CuseomPagination(PageNumberPagination):
+    page_size = 100  # 每页显示多少条
+    page_query_param = 'page'  # /url/?page=100
+    page_size_query_param = 'limit'  # /url/limit=10 前端控制每页显示最大条目数
+
+    def get_paginated_response(self, data):
+        return APIResponse(data, count=self.page.paginator.count)
+
+
+def pagination_response(query_set, request, serializer):
+    pagination = CuseomPagination()
+    pagination_queryset = pagination.paginate_queryset(query_set, request)
+    data = serializer(pagination_queryset, many=True).data
+    return pagination.get_paginated_response(data)
 
 
 def RunAnsible(ip, _module='ping', _args=None, _become=None, _type='model'):
@@ -77,7 +97,7 @@ def RunAnsible(ip, _module='ping', _args=None, _become=None, _type='model'):
         iplist.remove('')
     except Exception as e:
         print(e)
-    print(iplist, _module, _args, _become,_type)
+    print(iplist, _module, _args, _become, _type)
     ans = MyAnsiable(iplist=iplist, remote_user=ssh_user, become=_become, remote_password={"conn_pass": ssh_pass},
                      port=ssh_port)
     if _type == 'model':
@@ -98,16 +118,6 @@ def RunAnsible(ip, _module='ping', _args=None, _become=None, _type='model'):
 
 
 @login_required
-def allinfo(request):
-    thepage = {}
-    thepage['h1'] = '查看资源'
-    thepage['name'] = '查看资源'
-    allinfo = Hostinfo.objects.all()
-
-    return render(request, 'allos.html', {'allinfo': allinfo, 'thepage': thepage})
-
-
-@login_required
 def index(request):
     thepage = {}
     thepage['h1'] = '主页'
@@ -119,6 +129,28 @@ def index(request):
     count = {"all": allmachine, "phy": phymachine, "vm": vmmachine, "group": groupnum}
 
     return render(request, 'index.html', {'thepage': thepage, 'count': count})
+
+
+@login_required
+def allinfo(request):
+    thepage = {}
+    thepage['h1'] = '查看资源'
+    thepage['name'] = '查看资源'
+    allinfo = Hostinfo.objects.all()
+    return render(request, 'allos.html', {'allinfo': allinfo, 'thepage': thepage})
+
+
+class HostView(ViewSet):  # ViewSet
+    def list(self, request):
+        key = request.GET.get('key')
+        hostinfo = models.Hostinfo.objects.all()
+        serializer = appseries.HostinfoSerializer(hostinfo, many=True)
+        if key:
+            print(key)
+            hostinfo = models.Hostinfo.objects.filter(ip__icontains=key)
+            return pagination_response(hostinfo, request, appseries.HostinfoSerializer)
+        else:
+            return APIResponse(serializer.data)
 
 
 def login(request):
@@ -139,6 +171,7 @@ def login(request):
             return render(request, 'login/login.html', {'message': message})
 
     return render(request, 'login/login.html')
+
 
 @login_required
 @is_super_user
@@ -201,7 +234,7 @@ def resinfo(request):
 @xframe_options_exempt
 def hostupdate(request):
     ip = request.GET.get('ip')
-    if ip:
+    if ip != '':
         iplist = str(ip).split(',')
         success_dic, _a, _b, restr = RunAnsible(ip=iplist, _module='setup', _become='yes')
         if success_dic:
@@ -223,9 +256,10 @@ def hostupdate(request):
                     devices = facts_dics['ansible_devices']
                     device = {}
                     for i in devices.keys():
-                        if 'storage' in facts_dics['ansible_devices'][i]['host'] or 'VMware Virtual S' in \
-                                facts_dics['ansible_devices'][i]['model']:
-                            device[i] = facts_dics['ansible_devices'][i]['size']
+                        print(i)
+                        if 'storage' in str(devices[i].get('host')) or 'VMware Virtual S' in \
+                                str(devices[i].get('model')):
+                            device[i] = devices[i]['size']
                     disk_size = 0
                     for diskname in device:
                         size = float(device[diskname].split()[0])
@@ -247,25 +281,24 @@ def hostupdate(request):
                     ip_obj.mem = memory
                     ip_obj.equipment_model = equipment_model
                     ip_obj.save()
-
-                return HttpResponse(restr)
+                return APIJsonResponse(data='操作成功', log=restr)
             except Exception as e:
-                return HttpResponse(str(e))
-    last_html = request.META.get('HTTP_REFERER', '/')
-    return HttpResponseRedirect(last_html)
+                return APIJsonResponse(code=1, data='操作失败', log=e)
+
+        else:
+            log = "{}{}".format(_a, _b)
+            return APIJsonResponse(code=1, data='操作失败', log=log)
 
 
 @login_required
 @is_super_user
-def groupupdate(request):
-    name = request.GET.get('name')
-    if name:
-        groupobj = AppGroup.objects.get(name=name)
-        osobj = Hostinfo.objects.filter(app=groupobj)
-        for ip in osobj:
-            RunAnsible(ip.ip)
-    last_html = request.META.get('HTTP_REFERER', '/')
-    return HttpResponseRedirect(last_html)
+def hostdel(request):
+    ip = request.GET.get('ip')
+    try:
+        Hostinfo.objects.filter(ip=ip).delete()
+        return APIJsonResponse(data='操作成功')
+    except Exception as e:
+        return APIJsonResponse(code=1, data='操作失败', log=e)
 
 
 @login_required
@@ -279,26 +312,25 @@ def scan(request):
         group = request.POST.get('comment')
         vlanobj = Vlaninfo.objects.get(vlan_net=vlan)
         if vlanobj:
-
-            nm = nmap.PortScanner()
-            nm.scan(vlan, ssh_port, '-sS')
-            hosts_list = [(x, nm[x]['tcp'][int(ssh_port)]['state']) for x in nm.all_hosts()]
-            iplist = []
-            for ip, status in hosts_list:
+            # 启动扫描程序
+            s = Scan()
+            print('开始扫描')
+            s.run(vlan='10.57.16.0/24', port='22')
+            hosts_list = s.ips
+            print(hosts_list)
+            for ip in hosts_list:
                 groupobj = AppGroup.objects.get(name=group)
-                if status == 'open':
-                    if not Hostinfo.objects.filter(ip=ip):
-                        addos = Hostinfo.objects.create(ip=ip, vlan=vlanobj,app=groupobj)
-                        print("create", ip, groupobj,vlanobj)
-                    else:
-                        addos = Hostinfo.objects.get(ip=ip)
-                        addos.vlan=vlanobj
-                        addos.app=groupobj
-                        addos.save()
+                if not Hostinfo.objects.filter(ip=ip):
+                    addos = Hostinfo.objects.create(ip=ip, vlan=vlanobj, app=groupobj)
+                    print("create", ip, groupobj, vlanobj)
+                else:
+                    addos = Hostinfo.objects.get(ip=ip)
+                    addos.vlan = vlanobj
+                    addos.app = groupobj
+                    addos.save()
 
-                        print("edit", ip, groupobj,vlanobj)
-
-            #last_html = request.META.get('HTTP_REFERER', '/')
+                    print("edit", ip, groupobj, vlanobj)
+            # last_html = request.META.get('HTTP_REFERER', '/')
             return HttpResponseRedirect('/allinfo/')
     vlaninfo = Vlaninfo.objects.all()
     groupinfo = AppGroup.objects.all()
@@ -330,10 +362,6 @@ def shell(request):
         ctype = request.POST.get('type')
         is_sudo = request.POST.get('open')
         if ctype == 'script':
-            fileList = get_sh_file("/shell", '.sh')
-        elif ctype == 'playbook':
-            fileList = get_sh_file("/playbook", '.yml')
-        if ctype == 'script':
             command = request.POST.get('script')
             script_args = request.POST.get('script_args')
             command = "{} {}".format(command, script_args)
@@ -349,7 +377,8 @@ def shell(request):
             if ctype == 'playbook':
                 command = request.POST.get('playbook')
                 print(command)
-                success, unreachable, failed, restr = RunAnsible(ip=iplist,_args=command, _type='playbook',_become=become)
+                success, unreachable, failed, restr = RunAnsible(ip=iplist, _args=command, _type='playbook',
+                                                                 _become=become)
             else:
                 success, unreachable, failed, restr = RunAnsible(ip=iplist, _module=ctype, _args=command,
                                                                  _become=become)
@@ -369,8 +398,6 @@ def shell(request):
                     resstr += str(failed.get(i)['msg']) + "\n"
                     resdic['resstr'] += resstr
                 shell_res.append(resdic)
-
-
         else:
             last_html = request.META.get('HTTP_REFERER', '/')
             return HttpResponseRedirect(last_html)
@@ -378,15 +405,14 @@ def shell(request):
 
         iplist = str(request.GET.get('ip')).split(',')[:-1]
         ctype = request.GET.get('type')
-        if ctype == 'script':
-            fileList = get_sh_file("/shell", '.sh')
-        elif ctype == 'playbook':
-            fileList = get_sh_file("/playbook", '.yml')
-        print(fileList, 1111111111)
         if len(iplist) == 0:
             print(iplist, len(iplist))
             last_html = request.META.get('HTTP_REFERER', '/')
             return HttpResponseRedirect(last_html)
+    if ctype == 'script':
+        fileList = get_sh_file("/shell", '.sh')
+    elif ctype == 'playbook':
+        fileList = get_sh_file("/playbook", '.yml')
     return render(request, 'shell.html',
                   {'filelist': fileList, 'iplist': iplist, 'shell_res': shell_res, 'run_type': ctype})
 

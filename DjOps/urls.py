@@ -32,6 +32,7 @@ urlpatterns = [
     path('allinfo/', mv.allinfo),
     path('resinfo/', mv.resinfo),
     path('hostupdate/', mv.hostupdate),
+    path('hostdel/',mv.hostdel),
     path('scan/', mv.scan),
     path('shell/', mv.shell),
 

@@ -147,5 +147,5 @@ REST_FRAMEWORK = {
 SSH_INFO = {
     'SSH_PORT' : '22',
     'SSH_USER' : 'root',
-    'SSH_PASS' : '123457',
+    'SSH_PASS' : '123456',
 }

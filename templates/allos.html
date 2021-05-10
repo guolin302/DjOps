@@ -1,15 +1,15 @@
 {% extends 'base.html' %}
 {% block content %}
     <div class="demoTable">
-        ËÑË÷ID£º
+        搜索IP：
         <div class="layui-inline">
             <input class="layui-input" name="id" id="demoReload" autocomplete="off">
         </div>
-        <button class="layui-btn" data-type="reload">ËÑË÷</button>
+        <button class="layui-btn" data-type="reload">搜索</button>
     </div>
+
+
     <table class="layui-hide" id="test" lay-filter="test"></table>
-
-
 
     <script type="text/html" id="toolbarDemo">
         <div class="layui-btn-container">
@@ -23,8 +23,8 @@
     </script>
 
     <script type="text/html" id="barDemo">
-        <a class="layui-btn layui-btn-xs" lay-event="edit">更新</a>
-        <a class="layui-btn layui-btn-danger layui-btn-xs" lay-event="del">删除</a>
+        <a class="layui-btn layui-btn-xs" lay-event="update">更新</a>
+        <a class="layui-btn layui-btn-danger layui-btn-xs" data-method="delete" lay-event="del">删除</a>
     </script>
     <script>
 
@@ -75,79 +75,33 @@
                     , {field: 'disk', title: '硬盘', sort: true}
                     , {field: 'notes', title: '备注信息', sort: true, hide: true}
                     , {field: 'exceedtime', title: '到期时间', sort: true,}
-                    , {fixed: 'right', title: '操作', toolbar: '#barDemo',}
+                    , {fixed: 'right', title: '操作', width: 130, toolbar: '#barDemo',}
                 ]]
                 , page: true
-                ,id: 'tabReload'
+                , id: 'tabReload'
             });
 
             //头工具栏事件
             table.on('toolbar(test)', function (obj) {
                 var checkStatus = table.checkStatus(obj.config.id);
                 switch (obj.event) {
-                    case
-                    'shell':
+                    case 'shell' : case 'script' : case 'playbook':
+                        console.log(obj.event)
                         var iplist = ''
                         var data = checkStatus.data;
                         for (var item in data) {
                             iplist += data[item].ip + ",";
                         }
                         if (data.length != 0) {
-                            var url = '/shell?ip=' + iplist + "&type=shell"
+                            var url = '/shell?ip=' + iplist + "&type="+ obj.event
                             layer.open({
                                 type: 2,
-                                title: "执行命令",
+                                title: "执行"+obj.event,
                                 shadeClose: true,
                                 maxmin: true,
                                 area: ['90%', '90%'],
                                 content: [url, 'on'],
                                 btn: ['关闭'],
-                            })
-
-                        } else {
-                            layer.msg('未选中任何主机');
-                        }
-                        break;
-                    case 'script':
-                        var iplist = ''
-                        var data = checkStatus.data;
-                        for (var item in data) {
-                            iplist += data[item].ip + ",";
-                        }
-                        //layer.alert(JSON.stringify(iplist));
-                        if (data.length != 0) {
-                            var url = '/shell?ip=' + iplist + "&type=script"
-                            layer.open({
-                                type: 2,
-                                title: "执行脚本",
-                                shadeClose: true,
-                                maxmin: true,
-                                area: ['90%', '90%'],
-                                content: [url, 'on'],
-                                btn: ['关闭'],
-
-                                zIndex: layer.zIndex //重点1
-                                , success: function (layero, index) {
-                                    layer.setTop(layero); //重点2. 保持选中窗口置顶
-                                    //记录索引，以便按 esc 键关闭。事件见代码最末尾处。
-                                    layer.escIndex = layer.escIndex || [];
-                                    layer.escIndex.unshift(index);
-                                    //选中当前层时，将当前层索引放置在首位
-                                    layero.on('mousedown', function () {
-                                        var _index = layer.escIndex.indexOf(index);
-                                        if (_index !== -1) {
-                                            layer.escIndex.splice(_index, 1); //删除原有索引
-                                        }
-                                        layer.escIndex.unshift(index); //将索引插入到数组首位
-                                    });
-                                }
-                                , end: function () {
-                                    //更新索引
-                                    if (typeof layer.escIndex === 'object') {
-                                        layer.escIndex.splice(0, 1);
-                                    }
-                                }
-
                             })
 
                         } else {
@@ -165,81 +119,12 @@
                             var url = '/hostupdate/?ip=' + iplist
                             layer.open({
                                 type: 2,
-                                title: "执行脚本",
+                                title: "更新主机",
                                 shadeClose: true,
                                 maxmin: true,
                                 area: ['90%', '90%'],
                                 content: [url, 'on'],
                                 btn: ['关闭'],
-
-                                zIndex: layer.zIndex //重点1
-                                , success: function (layero, index) {
-                                    layer.setTop(layero); //重点2. 保持选中窗口置顶
-                                    //记录索引，以便按 esc 键关闭。事件见代码最末尾处。
-                                    layer.escIndex = layer.escIndex || [];
-                                    layer.escIndex.unshift(index);
-                                    //选中当前层时，将当前层索引放置在首位
-                                    layero.on('mousedown', function () {
-                                        var _index = layer.escIndex.indexOf(index);
-                                        if (_index !== -1) {
-                                            layer.escIndex.splice(_index, 1); //删除原有索引
-                                        }
-                                        layer.escIndex.unshift(index); //将索引插入到数组首位
-                                    });
-                                }
-                                , end: function () {
-                                    //更新索引
-                                    if (typeof layer.escIndex === 'object') {
-                                        layer.escIndex.splice(0, 1);
-                                    }
-                                }
-
-                            })
-
-                        } else {
-                            layer.msg('未选中任何主机');
-                        }
-                        break;
-                    case 'playbook':
-                        var iplist = ''
-                        var data = checkStatus.data;
-                        for (var item in data) {
-                            iplist += data[item].ip + ",";
-                        }
-                        //layer.alert(JSON.stringify(iplist));
-                        if (data.length != 0) {
-                            var url = '/shell?ip=' + iplist + "&type=playbook"
-                            layer.open({
-                                type: 2,
-                                title: "run playbook",
-                                shadeClose: true,
-                                maxmin: true,
-                                area: ['90%', '90%'],
-                                content: [url, 'on'],
-                                btn: ['关闭'],
-
-                                zIndex: layer.zIndex //重点1
-                                , success: function (layero, index) {
-                                    layer.setTop(layero); //重点2. 保持选中窗口置顶
-                                    //记录索引，以便按 esc 键关闭。事件见代码最末尾处。
-                                    layer.escIndex = layer.escIndex || [];
-                                    layer.escIndex.unshift(index);
-                                    //选中当前层时，将当前层索引放置在首位
-                                    layero.on('mousedown', function () {
-                                        var _index = layer.escIndex.indexOf(index);
-                                        if (_index !== -1) {
-                                            layer.escIndex.splice(_index, 1); //删除原有索引
-                                        }
-                                        layer.escIndex.unshift(index); //将索引插入到数组首位
-                                    });
-                                }
-                                , end: function () {
-                                    //更新索引
-                                    if (typeof layer.escIndex === 'object') {
-                                        layer.escIndex.splice(0, 1);
-                                    }
-                                }
-
                             })
 
                         } else {
@@ -272,28 +157,51 @@
                 var data = obj.data;
                 //console.log(obj)
                 if (obj.event === 'del') {
-                    layer.confirm('真的删除行么', function (index) {
-                        obj.del();
-                        layer.close(index);
-                    });
-                } else if (obj.event === 'edit') {
-                    this.setAttribute('href', "/hostupdate/?ip=" + data.ip)
+                    var url = '/hostdel?ip=' + data.ip
+                    boxmsg="确认删除"
+                } else if (obj.event === 'update') {
+                    var url = '/hostupdate/?ip=' + data.ip
+                    boxmsg="确认更新"
 
                 }
+                layer.confirm(boxmsg, {
+                    btn: ['确认', '取消']
+                }, function () {
+                    // 按钮1的事件
+                    layer.msg("确认操作，请耐心等待");
+                    $.ajax({
+                        type: "get",
+                        url: url,
+                        async: false,
+                        success: function (resdata) {
+                            if (resdata.code == 0) {
+                                layer.msg(resdata.msg, {icon: 1});
+                                console.log(resdata.log);
+                                window.setTimeout("javascript:location.href='/allinfo/'", 2000);
+                            } else {
+                                layer.msg(resdata.msg, {icon: 2});
+                                console.log(resdata.log);
+                            }
+                        }
+                    });
+                }, function (index) {
+                    // 按钮2的事件
+                    layer.close(index);
+                });
+
             });
+
             var $ = layui.$, active = {
                 reload: function () {
                     var demoReload = $('#demoReload');
 
-                    //Ö´ÐÐÖØÔØ
                     table.reload('tabReload', {
                         page: {
-                            curr: 1 //ÖØÐÂ´ÓµÚ 1 Ò³¿ªÊ¼
+                            curr: 1
                         }
                         , where: {
-                            key: {
-                                ip : demoReload.val()
-                            }
+                            key: demoReload.val()
+
                         }
                     });
                 }

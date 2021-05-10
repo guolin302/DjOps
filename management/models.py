@@ -76,7 +76,7 @@ class Hostinfo(models.Model):
     vcpu = models.CharField(max_length=128, verbose_name='vcpus', blank=True)
     mem = models.CharField(max_length=128, verbose_name='内存', blank=True)
     disk = models.CharField(max_length=128, verbose_name='硬盘', blank=True)
-    exceedtime=models.DateField(verbose_name="到期时间",blank=True,default=timezone.now())
+    exceedtime=models.DateField(verbose_name="到期时间",blank=True,default=timezone.now)
     notes = models.TextField(verbose_name='备注', blank=True)
     # 使对象在后台显示更友好
     def __str__(self):

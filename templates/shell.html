@@ -40,7 +40,7 @@
                         </select>
                     </div>
                     <div class="layui-form-item">
-                        <label class="layui-form-label">jiaoben canshu</label>
+                        <label class="layui-form-label">脚本参数：</label>
                         <div class="layui-input-block">
                             <input type="text" name="script_args" lay-verify="title" autocomplete="off"
                                    placeholder="jiaoben canshu" class="layui-input">
@@ -50,7 +50,7 @@
                 </div>
             {% elif run_type == 'playbook' %}
                 <div class="layui-inline">
-                    <label class="layui-form-label">select playbook</label>
+                    <label class="layui-form-label">选择yml：</label>
                     <div class="layui-input-inline">
                         <select name="playbook" lay-verify="required" lay-search="">
                             <option value="">直接选择或搜索选择</option>
@@ -67,7 +67,7 @@
                     <input type="checkbox" checked="" name="open" lay-skin="switch" lay-filter="switchTest"
                            lay-text="是|否">
                     <input type="text" hidden="yes" readonly unselectable="on" name="type" value="{{ run_type }}"/>
-                    <button lay-filter="submit" lay-submit class="layui-btn" type="submit">开始执行</button>
+                    <button lay-skin="button" lay-filter="submit" lay-submit class="layui-btn" type="submit">开始执行</button>
                 </div>
             </div>
         </form>
@@ -94,6 +94,12 @@
             , layer = layui.layer
         //监听指定开关
         form.on('switch(switchTest)', function (data) {
+            layer.msg('sudo：' + (this.checked ? 'true' : 'false'), {
+                offset: '6px'
+            });
+            layer.tips('温馨提示：开启则通过sudo 执行命令', data.othis)
+        });
+        form.on('button(submit)', function (data) {
             layer.msg('sudo：' + (this.checked ? 'true' : 'false'), {
                 offset: '6px'
             });
