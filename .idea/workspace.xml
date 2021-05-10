@@ -2,18 +2,7 @@
 <project version="4">
   <component name="ChangeListManager">
     <list default="true" id="d8976e9e-9d12-4e67-ba71-12bebfaecad1" name="默认更改列表" comment="">
-      <change afterPath="$PROJECT_DIR$/DjOps/tools/Scan.py" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/DjOps/tools/__init__.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/DjOps/settings.py" beforeDir="false" afterPath="$PROJECT_DIR$/DjOps/settings.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/DjOps/urls.py" beforeDir="false" afterPath="$PROJECT_DIR$/DjOps/urls.py" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/README.md" beforeDir="false" afterPath="$PROJECT_DIR$/README.md" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/management/Ansible2.py" beforeDir="false" afterPath="$PROJECT_DIR$/management/Ansible2.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/management/models.py" beforeDir="false" afterPath="$PROJECT_DIR$/management/models.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/management/views.py" beforeDir="false" afterPath="$PROJECT_DIR$/management/views.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/requirements.txt" beforeDir="false" afterPath="$PROJECT_DIR$/requirements.txt" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/templates/allos.html" beforeDir="false" afterPath="$PROJECT_DIR$/templates/allos.html" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/templates/base.html" beforeDir="false" afterPath="$PROJECT_DIR$/templates/base.html" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/templates/shell.html" beforeDir="false" afterPath="$PROJECT_DIR$/templates/shell.html" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -131,7 +120,7 @@
       <workItem from="1620266968209" duration="14218000" />
       <workItem from="1620297902472" duration="40964000" />
       <workItem from="1620444710837" duration="24551000" />
-      <workItem from="1620611780755" duration="16607000" />
+      <workItem from="1620611780755" duration="16751000" />
     </task>
     <servers />
   </component>

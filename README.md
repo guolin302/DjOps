@@ -3,7 +3,7 @@
 * 个人日常闲着没事儿干写的，代码乱七八糟。。希望有大神可以指教改进。
 * Python版本： 3.9.2，前端用的layer
 * 目前实现的功能
-  * 1 主机信息录入和更新 (调用ansibles etup 模块)
+  * 1 主机信息录入和更新 (调用ansible setup 模块)
   * 2 执行shell命令（调用ansible shell模块
   * 3 执行shell脚本（调用ansible script模块）
 
